@@ -89,7 +89,6 @@ const Footer = () => {
                 { label: 'Photo Gallery', path: '/gallery' },
                 { label: 'Special Offers', path: '/#offers' },
                 { label: 'Our Story', path: '/#story' },
-                { label: 'Admin Panel', path: '/admin' },
               ].map((link) => (
                 <li key={link.path}>
                   <Link

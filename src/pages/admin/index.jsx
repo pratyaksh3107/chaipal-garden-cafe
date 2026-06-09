@@ -1599,6 +1599,7 @@ const AdminPage = () => {
   const [pwd, setPwd] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -1623,14 +1624,33 @@ const AdminPage = () => {
   };
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     if (!db.isCloudMode()) {
       setLocalAuthed(false);
+      setLoggingOut(false);
       return;
     }
     await signOut();
+    setLoggingOut(false);
   };
 
   const isUserAuthenticated = localAuthed || isAuthenticated;
+
+  // Show a loading spinner while Supabase auth is initializing
+  // This prevents a flash of the login form for authenticated admins
+  if (loading && db.isCloudMode()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#071007' }}>
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="w-10 h-10 rounded-full border-2 border-transparent animate-spin"
+            style={{ borderTopColor: '#D4AF37', borderRightColor: 'rgba(212,175,55,0.3)' }}
+          />
+          <p className="text-white/40 text-xs font-semibold tracking-widest uppercase">Verifying session…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isUserAuthenticated) {
     return (
@@ -1773,8 +1793,14 @@ const AdminPage = () => {
               <a href="/" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all">
                 <Eye className="w-4 h-4" /> View Site
               </a>
-              <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-red-400/60 hover:text-red-400 hover:bg-red-400/5 transition-all">
-                <LogOut className="w-4 h-4" /> Logout
+              <button
+                id="admin-sidebar-logout-btn"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:text-white bg-red-500/8 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 transition-all disabled:opacity-50"
+              >
+                <LogOut className="w-4 h-4" />
+                {loggingOut ? 'Signing out…' : 'Logout'}
               </button>
             </div>
           </motion.aside>
@@ -1835,6 +1861,24 @@ const AdminPage = () => {
             >
               <Eye className="w-3.5 h-3.5" /> View Live Site
             </a>
+
+            {/* Prominent Logout Button in top bar */}
+            <button
+              id="admin-topbar-logout-btn"
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: 'rgba(239,68,68,0.12)',
+                borderColor: 'rgba(239,68,68,0.35)',
+                color: '#f87171',
+              }}
+              title="Sign out of admin panel"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{loggingOut ? 'Signing out…' : 'Logout'}</span>
+            </button>
+
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #2D4A27, #8B4513)' }}>A</div>
           </div>
         </div>
